@@ -67,7 +67,7 @@
 
     <canvas id="canvas"></canvas>
 
-    <audio id = "christmas-music" loop preload="auto" playsinline autoplay>
+    <audio id = "christmas-music" loop preload="auto" playsinline autoplay muted>
         <source src = "We Wish You a Merry Christmas.mp3"
                 type = "audio/mpeg">
     </audio>
@@ -93,23 +93,35 @@
         const tryPlay = async () => {
             try {
                 await music.play();
-                setButtonPlaying(true);
+                setButtonPlaying(!music.muted && !music.paused);
             } catch (e) {
                 setButtonPlaying(false);
             }
         };
         
+        let hasInteracted = false;
         const onFirstInteraction = async () => {
+            if (hasInteracted) return;
+            hasInteracted = true;
+            music.muted = false;
             await tryPlay();
         };
 
+        setButtonPlaying(false);
+
         window.addEventListener('load', () => {
-            setButtonPlaying(false);
+            music.muted = true;
             tryPlay();
         });
-        document.addEventListener('pointerdown', onFirstInteraction, { once: true });
+  
+        document.addEventListener('click', onFirstInteraction, { once: true });
 
-        musicToggle.addEventListener('click', async () => {
+        musicToggle.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            if (!hasInteracted) {
+                hasInteracted = true;
+                music.muted = false;
+            }
             if (music.paused) {
                 await tryPlay();
             } else {
